@@ -23,7 +23,7 @@ git node["diamond"]["source_path"] do
   repository node["diamond"]["source_repository"]
   reference node["diamond"]["source_reference"]
   action :sync
-  notifies :run, "execute[build diamond]"
+  notifies :run, "execute[build diamond]", :immediately
 end
 
 case node['platform_family']
@@ -31,13 +31,13 @@ when "debian"
   execute "build diamond" do
     command "cd #{node["diamond"]["source_path"]};make builddeb"
     action :nothing
-    notifies :run, "execute[install diamond]"
+    notifies :run, "execute[install diamond]", :immediately
   end
   
   execute "install diamond" do 
     command "cd #{node["diamond"]["source_path"]};dpkg -i build/diamond_*_all.deb"
     action :nothing
-    notifies :restart, "service[diamond]"
+    notifies :restart, "service[diamond]", :delayed
   end
   
 else
@@ -45,12 +45,12 @@ else
   execute "build diamond" do
     command "cd #{node["diamond"]["source_path"]};make buildrpm"
     action :nothing
-    notifies :run, "execute[install diamond]"
+    notifies :run, "execute[install diamond]", :immediately
   end
   
   execute "install diamond" do 
     command "cd #{node["diamond"]["source_path"]};rpm -ivh dist/*.noarch.rpm"
     action :nothing
-    notifies :restart, "service[diamond]"
+    notifies :restart, "service[diamond]", :delayed
   end
 end

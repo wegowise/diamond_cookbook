@@ -1,14 +1,6 @@
 # install diamond and enable basic collectors
 
-service "diamond" do
-  action [ :nothing ]
-end
-
 include_recipe "diamond::install_%s" % [node['diamond']['install_method']]
-
-service "diamond" do
-  action [ :enable ]
-end
 
 if node['diamond']['graphite_server_role'].nil?
   graphite_ip = node['diamond']['graphite_server']
@@ -27,7 +19,7 @@ template "/etc/diamond/diamond.conf" do
   owner "root"
   group "root"
   mode "0644"
-  notifies :restart, "service[diamond]"
+  notifies :restart, "service[diamond]", :delayed
   variables(
     :graphite_ip => graphite_ip
   )
@@ -37,4 +29,9 @@ end
 # Install collectors
 node['diamond']['add_collectors'].each do |collector|
   include_recipe "diamond::#{collector}"
+end
+
+service "diamond" do
+  supports :restart => true, :start => true, :stop => true
+  action :enable
 end
